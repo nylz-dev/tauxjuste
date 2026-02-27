@@ -534,6 +534,48 @@
       line-height: 1.4;
     }
 
+    /* Slider jours */
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .jours-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 4px;
+      background: rgba(212,168,83,0.25);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    .jours-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    .jours-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+    .slider-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      min-width: 60px;
+      text-align: right;
+    }
+
     /* Projection */
     .projection {
       display: flex;
@@ -1009,8 +1051,12 @@
     <!-- Projection -->
     <div class="projection">
       <span class="projection-icon">📅</span>
-      <div>
-        <p class="projection-label">Projection mensuelle · 15 jours facturés</p>
+      <div style="flex:1">
+        <p class="projection-label">Projection mensuelle · <span id="jours-label">15 jours facturés</span></p>
+        <div class="slider-wrap">
+          <input type="range" class="jours-slider" id="jours-slider" min="8" max="22" value="15" step="1">
+          <span class="slider-val"><span id="jours-val">15</span> j/mois</span>
+        </div>
         <p class="projection-text" id="r-projection">—</p>
       </div>
     </div>
@@ -1231,7 +1277,10 @@
     document.getElementById('r-quand-premium').textContent = data.quandUtiliserPremium || '';
     document.getElementById('r-position').textContent = data.positionMarche || '';
     document.getElementById('r-resume').textContent = data.resumePositionnement || '';
-    document.getElementById('r-projection').textContent = data.projectionMensuelle || '';
+    // Store TJM for slider recalculation
+    window._tjmData = { bas: data.tjm?.bas || 0, cible: data.tjm?.cible || 0, premium: data.tjm?.premium || 0 };
+    updateProjection(15);
+    document.getElementById('jours-slider').value = 15;
 
     document.getElementById('r-title').textContent = `${answers.competence || 'Freelance'} · ${answers.experience || ''}`;
 
@@ -1289,6 +1338,21 @@
   }
 
   // ── UTILS ──
+  // Slider jours facturés
+  function updateProjection(jours) {
+    const d = window._tjmData;
+    if (!d) return;
+    const fmt = n => Math.round(n * jours).toLocaleString('fr-FR');
+    document.getElementById('r-projection').textContent =
+      `Sur ${jours} jours facturés/mois : ${fmt(d.bas)}€ (compétitif) · ${fmt(d.cible)}€ (cible) · ${fmt(d.premium)}€ (premium)`;
+    document.getElementById('jours-label').textContent = `${jours} jours facturés`;
+    document.getElementById('jours-val').textContent = jours;
+  }
+
+  document.getElementById('jours-slider').addEventListener('input', function() {
+    updateProjection(+this.value);
+  });
+
   function showSection(id) {
     ['hero','wizard','email-gate','loading','results'].forEach(s => {
       document.getElementById(s).style.display = 'none';
