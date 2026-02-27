@@ -163,9 +163,8 @@ const calculateSchema = {
     quandUtiliserPremium: { type: 'string' },
     alertes: { type: 'array', items: { type: 'string' } },
     conseils: { type: 'array', items: { type: 'string' } },
-    projectionMensuelle: { type: 'string' }
   },
-  required: ['tauxHoraire', 'tjm', 'positionMarche', 'resumePositionnement', 'justificationCible', 'quandUtiliserBas', 'quandUtiliserPremium', 'alertes', 'conseils', 'projectionMensuelle']
+  required: ['tauxHoraire', 'tjm', 'positionMarche', 'resumePositionnement', 'justificationCible', 'quandUtiliserBas', 'quandUtiliserPremium', 'alertes', 'conseils']
 };
 
 app.post('/api/calculate', async (req, res) => {
@@ -207,6 +206,14 @@ Calcule les taux recommandés en €/h et TJM (€/jour base 8h) pour ce profil.
 
   try {
     const result = await callGemini(SYSTEM_PROMPT_CALCULATE, userMessage, 8192, calculateSchema);
+
+    // Calcul déterministe de la projection (15 jours facturés/mois)
+    const JOURS_FACTURES = 15;
+    const tjmBas = result.tjm?.bas || 0;
+    const tjmCible = result.tjm?.cible || 0;
+    const tjmPremium = result.tjm?.premium || 0;
+    result.projectionMensuelle = `Sur ${JOURS_FACTURES} jours facturés/mois : ${(tjmBas * JOURS_FACTURES).toLocaleString('fr-FR')}€ (compétitif) · ${(tjmCible * JOURS_FACTURES).toLocaleString('fr-FR')}€ (cible) · ${(tjmPremium * JOURS_FACTURES).toLocaleString('fr-FR')}€ (premium)`;
+
     res.json(result);
   } catch (err) {
     console.error('Erreur calcul:', err.message);
