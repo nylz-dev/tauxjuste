@@ -3,551 +3,1349 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TauxJuste — Calculateur de taux freelance IA</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>TauxJuste — Calculateur de taux freelance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    * { font-family: 'Inter', sans-serif; }
-    .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); }
-    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
-    .rate-card { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #86efac; }
-    .rate-card-target { background: linear-gradient(135deg, #052e16, #14532d); border: 2px solid #22c55e; }
-    .rate-card-premium { background: linear-gradient(135deg, #fefce8, #fef9c3); border: 2px solid #fbbf24; }
-    .locked { filter: blur(4px); user-select: none; pointer-events: none; }
-    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .pulse { animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-    .fade-in { animation: fadeIn 0.4s ease-in; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    select, input, textarea {
-      background: white;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 14px;
-      width: 100%;
-      font-size: 14px;
-      transition: border-color 0.2s;
-      outline: none;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --bg3: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.16);
+      --text: #f0ede8;
+      --text-muted: rgba(240,237,232,0.45);
+      --text-dim: rgba(240,237,232,0.25);
+      --accent: #d4a853;
+      --accent-dim: rgba(212,168,83,0.15);
+      --accent-hover: #e2be7a;
+      --green: #4ade80;
+      --red: #f87171;
     }
-    select:focus, input:focus, textarea:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.1); }
-    label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; }
-    .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; margin-bottom: 16px; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(212,168,83,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .nav-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(38px, 6vw, 58px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 480px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 4px;
+    }
+
+    /* ── WIZARD ── */
+    #wizard {
+      padding-bottom: 80px;
+    }
+
+    /* Progress */
+    .progress-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 48px;
+      padding-top: 8px;
+    }
+
+    .progress-step {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background 0.4s;
+    }
+
+    .progress-step.active { background: var(--accent); }
+    .progress-step.done { background: rgba(212,168,83,0.35); }
+
+    /* Step card */
+    .step {
+      display: none;
+      animation: fadeUp 0.35s ease forwards;
+    }
+    .step.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .step-question {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 4vw, 30px);
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .step-hint {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    /* Options grid */
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .options.cols-2 { grid-template-columns: 1fr 1fr; }
+    .options.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.4;
+    }
+
+    .option:hover {
+      border-color: var(--border-hover);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .option.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+
+    .option-icon { font-size: 18px; flex-shrink: 0; }
+
+    .option-text strong {
+      display: block;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .option-text span {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Text input step */
+    .text-input-wrap { position: relative; }
+
+    .step-input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+
+    .step-input::placeholder { color: var(--text-dim); }
+
+    .step-input:focus { border-color: var(--accent); }
+
+    /* Navigation */
+    .step-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 32px;
+    }
+
+    .btn-back {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 0;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-back:hover { color: var(--text); }
+
+    .btn-next {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-next:hover { background: var(--accent-hover); }
+    .btn-next:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Email gate */
+    #email-gate {
+      display: none;
+      padding-bottom: 80px;
+    }
+
+    .email-gate-inner {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px;
+      background: var(--bg2);
+      text-align: center;
+    }
+
+    .gate-icon { font-size: 40px; margin-bottom: 20px; }
+
+    .gate-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .gate-sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0 auto 32px;
+    }
+
+    .gate-form { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 0 auto; }
+
+    .gate-input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .gate-input::placeholder { color: var(--text-dim); }
+    .gate-input:focus { border-color: var(--accent); }
+
+    .btn-reveal {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 6px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-reveal:hover { background: var(--accent-hover); }
+
+    .gate-skip {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .gate-skip:hover { color: var(--text-muted); }
+
+    /* ── RESULTS ── */
+    #results {
+      display: none;
+      padding-bottom: 100px;
+    }
+
+    .results-header {
+      text-align: center;
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+
+    .results-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .results-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .results-position {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Rate cards */
+    .rate-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .rate-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 20px;
+      background: var(--bg2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rate-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(212,168,83,0.08), rgba(212,168,83,0.03));
+    }
+
+    .rate-card.featured::before {
+      content: 'RECOMMANDÉ';
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      background: var(--accent);
+      color: #0a0a0a;
+      padding: 4px 8px;
+      border-radius: 0 10px 0 6px;
+    }
+
+    .rate-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .rate-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .rate-card.featured .rate-value { color: var(--accent); }
+
+    .rate-unit {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .rate-tjm {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .rate-tjm strong { color: var(--text); }
+
+    .rate-context {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    /* Projection */
+    .projection {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg2);
+      margin-bottom: 32px;
+    }
+
+    .projection-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .projection-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .projection-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Analysis blocks */
+    .analysis-block {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      background: var(--bg2);
+      margin-bottom: 16px;
+    }
+
+    .block-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .block-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .block-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .list-items { display: flex; flex-direction: column; gap: 8px; }
+
+    .list-item {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .list-item-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .list-item.warning .list-item-dot { background: #f59e0b; }
+
+    /* Négociation */
+    .nego-section {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg2);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .nego-header {
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .nego-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .nego-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .btn-unlock {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-unlock:hover {
+      background: var(--accent-dim);
+    }
+
+    .nego-body {
+      padding: 28px;
+      filter: blur(5px);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .nego-body.unlocked {
+      filter: none;
+      user-select: auto;
+      pointer-events: auto;
+    }
+
+    .nego-block { margin-bottom: 24px; }
+
+    .nego-block-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    .nego-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      background: var(--bg3);
+      border-radius: 6px;
+      padding: 14px 16px;
+      white-space: pre-wrap;
+    }
+
+    .btn-copy {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .btn-copy:hover { color: var(--accent); }
+
+    .nego-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+
+    .nego-list { display: flex; flex-direction: column; gap: 6px; }
+    .nego-list-item {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .nego-list-item .dot-ok { color: var(--green); }
+    .nego-list-item .dot-no { color: var(--red); }
+
+    /* Reset */
+    .results-footer {
+      text-align: center;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-reset {
+      font-size: 13px;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .btn-reset:hover { color: var(--text-muted); }
+
+    /* Loading */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 80px 0;
+    }
+
+    .loading-icon {
+      font-size: 32px;
+      animation: spin 2s linear infinite;
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .loading-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* Error */
+    #error-msg {
+      display: none;
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.2);
+      color: #f87171;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    /* Responsive */
+    @media (max-width: 580px) {
+      .rate-grid { grid-template-columns: 1fr; }
+      .options.cols-2 { grid-template-columns: 1fr; }
+      .options.cols-3 { grid-template-columns: 1fr 1fr; }
+      .nego-grid { grid-template-columns: 1fr; }
+      .email-gate-inner { padding: 32px 20px; }
+    }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body>
 
-  <!-- HEADER -->
-  <header class="gradient-bg text-white py-12 px-4">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-flex items-center gap-2 bg-green-500 bg-opacity-20 border border-green-400 border-opacity-30 rounded-full px-4 py-1.5 text-sm text-green-300 font-medium mb-6">
-        💼 Calculateur IA · Marché français
-      </div>
-      <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-        Combien vaut<br/><span class="text-green-400">vraiment</span> votre expertise ?
-      </h1>
-      <p class="text-lg text-slate-300 max-w-xl mx-auto leading-relaxed">
-        Fini les devis au feeling. TauxJuste analyse votre profil et le marché FR pour vous donner un taux juste, justifié et défendable.
-      </p>
-      <div class="flex flex-wrap justify-center gap-4 mt-8 text-sm text-slate-400">
-        <span>✓ Basé sur Malt, Comet, Crème de la Crème</span>
-        <span>✓ Données 2024 marché FR</span>
-        <span>✓ Calcul gratuit</span>
-      </div>
+<div class="container">
+
+  <nav>
+    <span class="logo">TauxJuste</span>
+    <span class="nav-tag">Marché FR · 2025</span>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-eyebrow">Calculateur de taux freelance</div>
+    <h1>Combien vaut<br/><em>vraiment</em> votre expertise ?</h1>
+    <p class="hero-sub">Renseignez votre profil en 60 secondes. Obtenez votre fourchette de taux personnalisée, justifiée par les données réelles du marché français.</p>
+    <div class="hero-badges">
+      <span class="badge">Données Malt · Comet · 2025</span>
+      <span class="badge">Personnalisé par profil</span>
+      <span class="badge">Gratuit</span>
     </div>
-  </header>
+  </section>
 
-  <!-- MAIN -->
-  <main class="max-w-4xl mx-auto px-4 py-10">
+  <!-- WIZARD -->
+  <section id="wizard">
+    <div class="progress-bar" id="progress-bar"></div>
 
-    <!-- FORM -->
-    <div id="form-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-      <h2 class="text-xl font-bold text-gray-900 mb-8">Votre profil freelance</h2>
-
-      <!-- Section 1 : Profil -->
-      <div class="mb-10">
-        <p class="section-title">1 · Qui êtes-vous ?</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label>Compétence principale *</label>
-            <select id="competence">
-              <option value="">— Choisir —</option>
-              <optgroup label="Tech & Dev">
-                <option>Développeur web frontend</option>
-                <option>Développeur web backend</option>
-                <option>Développeur fullstack</option>
-                <option>Développeur mobile</option>
-                <option>Dev data / Data engineer</option>
-                <option>ML / IA engineer</option>
-                <option>DevOps / Cloud</option>
-                <option>Architecte logiciel</option>
-              </optgroup>
-              <optgroup label="Design">
-                <option>Designer UI/UX</option>
-                <option>Directeur artistique</option>
-                <option>Motion designer</option>
-                <option>Graphiste</option>
-              </optgroup>
-              <optgroup label="Marketing & Contenu">
-                <option>Rédacteur / Copywriter</option>
-                <option>Expert SEO</option>
-                <option>Social media manager</option>
-                <option>Growth hacker</option>
-                <option>Consultant marketing digital</option>
-              </optgroup>
-              <optgroup label="Consulting">
-                <option>Chef de projet digital</option>
-                <option>Product Manager</option>
-                <option>Consultant RH</option>
-                <option>Consultant financier</option>
-                <option>Consultant stratégie</option>
-                <option>Formateur</option>
-              </optgroup>
-              <option value="Autre">Autre</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Années d'expérience *</label>
-            <select id="experience">
-              <option value="">— Choisir —</option>
-              <option>Moins d'1 an</option>
-              <option>1-2 ans</option>
-              <option>3-5 ans</option>
-              <option>5-10 ans</option>
-              <option>Plus de 10 ans</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Localisation</label>
-            <input type="text" id="localisation" placeholder="Ex : Paris, Lyon, Remote..." />
-          </div>
-
-          <div>
-            <label>Mode de travail</label>
-            <select id="arrangement">
-              <option value="Full remote">Full remote</option>
-              <option value="Hybride">Hybride</option>
-              <option value="Sur site requis">Sur site requis</option>
-            </select>
-          </div>
-
-          <div class="md:col-span-2">
-            <label>Votre spécialisation <span class="font-normal text-gray-400">(ce qui vous rend unique)</span></label>
-            <textarea id="specialisation" rows="2" placeholder="Ex : React/Next.js pour startups SaaS, spécialiste e-commerce Shopify, copywriting B2B SaaS..."></textarea>
-          </div>
-        </div>
+    <!-- STEP 1 : Compétence -->
+    <div class="step active" data-step="1">
+      <p class="step-label">01 / 06</p>
+      <h2 class="step-question">Quelle est votre compétence principale ?</h2>
+      <p class="step-hint">Choisissez le domaine qui correspond le mieux à votre activité.</p>
+      <div class="options cols-2" id="opts-competence">
+        <button class="option" data-value="Développeur web frontend"><span class="option-icon">⚡</span><div class="option-text"><strong>Dev Frontend</strong><span>React, Vue, Angular…</span></div></button>
+        <button class="option" data-value="Développeur web backend"><span class="option-icon">⚙️</span><div class="option-text"><strong>Dev Backend</strong><span>Node, Python, PHP…</span></div></button>
+        <button class="option" data-value="Développeur fullstack"><span class="option-icon">🔁</span><div class="option-text"><strong>Dev Fullstack</strong><span>Frontend + Backend</span></div></button>
+        <button class="option" data-value="Dev data / ML / IA"><span class="option-icon">🧠</span><div class="option-text"><strong>Data / ML / IA</strong><span>Data science, LLM…</span></div></button>
+        <button class="option" data-value="DevOps / Cloud"><span class="option-icon">☁️</span><div class="option-text"><strong>DevOps / Cloud</strong><span>AWS, GCP, Infra…</span></div></button>
+        <button class="option" data-value="Designer UI/UX"><span class="option-icon">🎨</span><div class="option-text"><strong>Designer UI/UX</strong><span>Figma, produit…</span></div></button>
+        <button class="option" data-value="Expert SEO / Growth"><span class="option-icon">📈</span><div class="option-text"><strong>SEO / Growth</strong><span>Acquisition, analytics…</span></div></button>
+        <button class="option" data-value="Product Manager"><span class="option-icon">🗺️</span><div class="option-text"><strong>Product Manager</strong><span>Roadmap, specs…</span></div></button>
+        <button class="option" data-value="Consultant marketing digital"><span class="option-icon">📣</span><div class="option-text"><strong>Marketing Digital</strong><span>Ads, social, email…</span></div></button>
+        <button class="option" data-value="Consultant stratégie / management"><span class="option-icon">💼</span><div class="option-text"><strong>Consulting / Mgmt</strong><span>Stratégie, organisation…</span></div></button>
+        <button class="option" data-value="Rédacteur / Copywriter"><span class="option-icon">✍️</span><div class="option-text"><strong>Rédacteur / Copy</strong><span>Contenu, UX writing…</span></div></button>
+        <button class="option" data-value="Autre"><span class="option-icon">🔧</span><div class="option-text"><strong>Autre</strong><span>Autre spécialité</span></div></button>
       </div>
-
-      <!-- Section 2 : La mission -->
-      <div class="mb-10">
-        <p class="section-title">2 · La mission</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label>Type de mission</label>
-            <select id="typeProjet">
-              <option value="Mission ponctuelle">Mission ponctuelle</option>
-              <option value="Retainer mensuel">Retainer mensuel</option>
-              <option value="Forfait projet">Forfait projet</option>
-              <option value="TJM (régie)">TJM / Régie</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Complexité</label>
-            <select id="complexite">
-              <option value="Standard">Standard</option>
-              <option value="Intermédiaire">Intermédiaire</option>
-              <option value="Complexe / Spécialisé">Complexe / Spécialisé</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Type de client</label>
-            <select id="typeClient">
-              <option value="Startup early-stage">Startup early-stage</option>
-              <option value="Scale-up / Startup financée">Scale-up / Startup financée</option>
-              <option value="PME">PME</option>
-              <option value="ETI">ETI</option>
-              <option value="Grand groupe">Grand groupe</option>
-              <option value="Agence (sous-traitance)">Agence (sous-traitance)</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Durée estimée</label>
-            <select id="duree">
-              <option value="Moins d'1 semaine">Moins d'1 semaine</option>
-              <option value="1-4 semaines">1-4 semaines</option>
-              <option value="1-3 mois">1-3 mois</option>
-              <option value="3-6 mois">3-6 mois</option>
-              <option value="6+ mois">6+ mois</option>
-            </select>
-          </div>
-
-          <div class="md:col-span-2">
-            <label>Description de la mission <span class="font-normal text-gray-400">(optionnel)</span></label>
-            <textarea id="descriptionProjet" rows="2" placeholder="Ex : Refonte complète d'une webapp React, migration vers TypeScript, intégration d'une API de paiement..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3 : Positionnement -->
-      <div class="mb-8">
-        <p class="section-title">3 · Votre positionnement</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label>Qualité du portfolio</label>
-            <select id="qualitePortfolio">
-              <option value="Portfolio en construction">Portfolio en construction</option>
-              <option value="Portfolio solide">Portfolio solide</option>
-              <option value="Portfolio fort (références connues)">Portfolio fort (références connues)</option>
-              <option value="Portfolio d'excellence / primé">Portfolio d'excellence / primé</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Niveau de demande actuel</label>
-            <select id="niveauDemande">
-              <option value="Je cherche activement des missions">Je cherche activement</option>
-              <option value="Quelques leads en cours">Quelques leads en cours</option>
-              <option value="Pipeline régulier">Pipeline régulier</option>
-              <option value="Forte demande, je refuse des clients">Forte demande</option>
-            </select>
-          </div>
-
-          <div class="md:col-span-2">
-            <label>Atouts spécifiques <span class="font-normal text-gray-400">(certifications, résultats chiffrés, clients notables...)</span></label>
-            <textarea id="valeurUnique" rows="2" placeholder="Ex : Certifié AWS, ex-Google, j'ai augmenté le taux de conversion de 40% chez un client e-commerce..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBMIT -->
-      <button
-        id="calculate-btn"
-        onclick="calculateRate()"
-        class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-      >
-        💡 Calculer mon taux juste →
-      </button>
-
-      <p id="error-msg" class="hidden mt-4 text-red-500 text-sm text-center bg-red-50 py-2 px-4 rounded-lg"></p>
-    </div>
-
-    <!-- RESULTS -->
-    <div id="results-section" class="hidden fade-in">
-
-      <!-- RATE CARDS -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <!-- BAS -->
-        <div class="rate-card rounded-2xl p-6 card-hover">
-          <p class="text-xs font-bold uppercase tracking-wider text-green-700 mb-2">Taux compétitif</p>
-          <p class="text-3xl font-black text-green-800" id="r-bas-h">—</p>
-          <p class="text-sm text-green-700 mb-1">€ / heure</p>
-          <p class="text-2xl font-bold text-green-700" id="r-bas-tjm">—</p>
-          <p class="text-xs text-green-600">TJM (8h)</p>
-          <p class="text-xs text-gray-500 mt-3" id="r-quand-bas">—</p>
-        </div>
-
-        <!-- CIBLE -->
-        <div class="rate-card-target rounded-2xl p-6 card-hover relative">
-          <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
-            <span class="badge bg-green-500 text-white">⭐ Recommandé</span>
-          </div>
-          <p class="text-xs font-bold uppercase tracking-wider text-green-300 mb-2">Taux cible</p>
-          <p class="text-3xl font-black text-white" id="r-cible-h">—</p>
-          <p class="text-sm text-green-300 mb-1">€ / heure</p>
-          <p class="text-2xl font-bold text-green-400" id="r-cible-tjm">—</p>
-          <p class="text-xs text-green-300">TJM (8h)</p>
-          <p class="text-xs text-gray-400 mt-3" id="r-justif">—</p>
-        </div>
-
-        <!-- PREMIUM -->
-        <div class="rate-card-premium rounded-2xl p-6 card-hover">
-          <p class="text-xs font-bold uppercase tracking-wider text-yellow-700 mb-2">Taux premium</p>
-          <p class="text-3xl font-black text-yellow-800" id="r-premium-h">—</p>
-          <p class="text-sm text-yellow-700 mb-1">€ / heure</p>
-          <p class="text-2xl font-bold text-yellow-700" id="r-premium-tjm">—</p>
-          <p class="text-xs text-yellow-600">TJM (8h)</p>
-          <p class="text-xs text-gray-500 mt-3" id="r-quand-premium">—</p>
-        </div>
-      </div>
-
-      <!-- POSITION MARCHÉ + RÉSUMÉ -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-green-100 rounded-full p-2">📊</div>
-          <div>
-            <p class="font-bold text-gray-900">Votre position sur le marché</p>
-            <p class="text-sm text-green-600 font-semibold" id="r-position">—</p>
-          </div>
-        </div>
-        <p class="text-sm text-gray-700 leading-relaxed" id="r-resume">—</p>
-
-        <!-- Projection -->
-        <div class="mt-4 bg-green-50 rounded-xl p-4">
-          <p class="text-xs font-bold uppercase tracking-wider text-green-700 mb-1">Projection mensuelle (15 jours facturés)</p>
-          <p class="text-sm text-green-800" id="r-projection">—</p>
-        </div>
-      </div>
-
-      <!-- ALERTES + CONSEILS -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 class="font-bold text-gray-900 mb-4">⚡ Points d'attention</h3>
-          <ul id="r-alertes" class="space-y-2 text-sm text-gray-700"></ul>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 class="font-bold text-gray-900 mb-4">💡 Conseils pour monter en gamme</h3>
-          <ul id="r-conseils" class="space-y-2 text-sm text-gray-700"></ul>
-        </div>
-      </div>
-
-      <!-- SECTION NÉGOCIATION (premium) -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-        <div class="p-6 border-b border-gray-100">
-          <div class="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h3 class="font-bold text-gray-900 text-lg">🤝 Scripts de négociation</h3>
-              <p class="text-sm text-gray-500 mt-1">Défendez votre taux avec les bons mots — email, call, objections</p>
-            </div>
-            <div id="premium-gate" class="flex items-center gap-3">
-              <span class="badge bg-amber-100 text-amber-700">🔒 Premium</span>
-              <button onclick="unlockNegotiation()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-5 rounded-xl text-sm transition-colors">
-                Débloquer — 3€
-              </button>
-            </div>
-            <div id="premium-unlocked" class="hidden">
-              <span class="badge bg-green-100 text-green-700">✓ Débloqué</span>
-            </div>
-          </div>
-        </div>
-
-        <div id="negotiate-content" class="p-6 space-y-5">
-          <!-- Email -->
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">📧 Email de proposition tarifaire</p>
-            <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap" id="n-email">—</div>
-            <button onclick="copyText('n-email')" class="mt-2 text-xs text-green-600 font-medium hover:underline">Copier</button>
-          </div>
-          <!-- Call -->
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">📞 Pitch pour un appel</p>
-            <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed" id="n-call">—</div>
-            <button onclick="copyText('n-call')" class="mt-2 text-xs text-green-600 font-medium hover:underline">Copier</button>
-          </div>
-          <!-- Objections -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">💬 "C'est trop cher"</p>
-              <div class="bg-red-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed" id="n-tropcher">—</div>
-            </div>
-            <div>
-              <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">💬 "Vous faites une remise ?"</p>
-              <div class="bg-orange-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed" id="n-remise">—</div>
-            </div>
-          </div>
-          <!-- Points forts -->
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">🏆 Arguments à mettre en avant</p>
-            <ul id="n-points" class="space-y-2"></ul>
-          </div>
-          <!-- Erreurs -->
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">❌ Erreurs à éviter</p>
-            <ul id="n-erreurs" class="space-y-2"></ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- RECALCUL -->
-      <div class="text-center">
-        <button onclick="resetForm()" class="text-gray-500 hover:text-gray-700 text-sm font-medium underline">
-          ← Recalculer avec un autre profil
-        </button>
+      <div class="step-nav">
+        <span></span>
+        <button class="btn-next" id="next-1" disabled onclick="nextStep(1)">Continuer →</button>
       </div>
     </div>
 
-    <!-- LOADING -->
-    <div id="loading-section" class="hidden text-center py-16">
-      <div class="text-5xl mb-4 pulse">💼</div>
-      <p class="text-gray-600 font-medium text-lg">Analyse du marché en cours...</p>
-      <p class="text-gray-400 text-sm mt-2">Comparaison avec Malt, Comet, Crème de la Crème</p>
+    <!-- STEP 2 : Expérience -->
+    <div class="step" data-step="2">
+      <p class="step-label">02 / 06</p>
+      <h2 class="step-question">Combien d'années d'expérience avez-vous ?</h2>
+      <p class="step-hint">En tant que freelance ou salarié, toutes expériences confondues dans votre domaine.</p>
+      <div class="options cols-2" id="opts-experience">
+        <button class="option" data-value="Moins d'1 an"><span class="option-icon">🌱</span><div class="option-text"><strong>Moins d'1 an</strong><span>Débutant</span></div></button>
+        <button class="option" data-value="1-2 ans"><span class="option-icon">📚</span><div class="option-text"><strong>1 – 2 ans</strong><span>Junior</span></div></button>
+        <button class="option" data-value="3-5 ans"><span class="option-icon">💪</span><div class="option-text"><strong>3 – 5 ans</strong><span>Intermédiaire</span></div></button>
+        <button class="option" data-value="5-10 ans"><span class="option-icon">⭐</span><div class="option-text"><strong>5 – 10 ans</strong><span>Senior</span></div></button>
+        <button class="option" data-value="Plus de 10 ans"><span class="option-icon">🏆</span><div class="option-text"><strong>10 ans et plus</strong><span>Expert / Lead</span></div></button>
+      </div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(2)">← Retour</button>
+        <button class="btn-next" id="next-2" disabled onclick="nextStep(2)">Continuer →</button>
+      </div>
     </div>
 
-  </main>
+    <!-- STEP 3 : Localisation -->
+    <div class="step" data-step="3">
+      <p class="step-label">03 / 06</p>
+      <h2 class="step-question">Où êtes-vous basé ?</h2>
+      <p class="step-hint">Votre ville impacte directement les taux pratiqués, même en full remote.</p>
+      <div class="options cols-2" id="opts-localisation">
+        <button class="option" data-value="Paris / Île-de-France"><span class="option-icon">🗼</span><div class="option-text"><strong>Paris / IDF</strong><span>+10 à +20% vs moyenne</span></div></button>
+        <button class="option" data-value="Lyon, Bordeaux, Nantes, Toulouse"><span class="option-icon">🏙️</span><div class="option-text"><strong>Grande métropole</strong><span>Lyon, Bordeaux, Nantes…</span></div></button>
+        <button class="option" data-value="Ville moyenne / province"><span class="option-icon">🌿</span><div class="option-text"><strong>Ville moyenne</strong><span>-5 à -10% vs moyenne</span></div></button>
+        <button class="option" data-value="Full remote (client Paris)"><span class="option-icon">🌐</span><div class="option-text"><strong>Full remote</strong><span>Client Paris = taux Paris</span></div></button>
+      </div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(3)">← Retour</button>
+        <button class="btn-next" id="next-3" disabled onclick="nextStep(3)">Continuer →</button>
+      </div>
+    </div>
 
-  <!-- FOOTER -->
-  <footer class="text-center py-8 text-xs text-gray-400 border-t border-gray-100">
-    TauxJuste · Calculateur de taux freelance IA · Données marché France 2024
+    <!-- STEP 4 : Type de client -->
+    <div class="step" data-step="4">
+      <p class="step-label">04 / 06</p>
+      <h2 class="step-question">Quel type de client visez-vous ?</h2>
+      <p class="step-hint">Le type de client est l'un des facteurs les plus déterminants sur le taux applicable.</p>
+      <div class="options" id="opts-typeClient">
+        <button class="option" data-value="Startup early-stage"><span class="option-icon">🚀</span><div class="option-text"><strong>Startup early-stage</strong><span>Pré-seed / seed — compenser par equity ou visibilité</span></div></button>
+        <button class="option" data-value="Scale-up / Startup financée"><span class="option-icon">📊</span><div class="option-text"><strong>Scale-up / Startup financée</strong><span>Série A+ — budgets tech solides</span></div></button>
+        <button class="option" data-value="PME"><span class="option-icon">🏢</span><div class="option-text"><strong>PME</strong><span>Référence marché</span></div></button>
+        <button class="option" data-value="ETI / Grand groupe"><span class="option-icon">🏦</span><div class="option-text"><strong>ETI / Grand groupe</strong><span>+10 à +20% — processus longs mais budgets élevés</span></div></button>
+        <button class="option" data-value="Agence (sous-traitance)"><span class="option-icon">🔗</span><div class="option-text"><strong>Agence (sous-traitance)</strong><span>-5 à -10% — volume compensé par régularité</span></div></button>
+      </div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(4)">← Retour</button>
+        <button class="btn-next" id="next-4" disabled onclick="nextStep(4)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 : Portfolio -->
+    <div class="step" data-step="5">
+      <p class="step-label">05 / 06</p>
+      <h2 class="step-question">Comment évaluez-vous votre portfolio ?</h2>
+      <p class="step-hint">Un portfolio fort justifie un taux premium auprès des clients exigeants.</p>
+      <div class="options" id="opts-qualitePortfolio">
+        <button class="option" data-value="Portfolio en construction"><span class="option-icon">🌱</span><div class="option-text"><strong>En construction</strong><span>Peu de références clients, premiers projets</span></div></button>
+        <button class="option" data-value="Portfolio solide"><span class="option-icon">✅</span><div class="option-text"><strong>Portfolio solide</strong><span>Références variées, résultats démontrables</span></div></button>
+        <button class="option" data-value="Portfolio fort (références connues)"><span class="option-icon">⭐</span><div class="option-text"><strong>Portfolio fort</strong><span>Clients reconnus, cas d'usage concrets</span></div></button>
+        <button class="option" data-value="Portfolio d'excellence / primé"><span class="option-icon">🏆</span><div class="option-text"><strong>Portfolio d'excellence</strong><span>Primé, top clients, résultats exceptionnels</span></div></button>
+      </div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(5)">← Retour</button>
+        <button class="btn-next" id="next-5" disabled onclick="nextStep(5)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6 : Spécialisation (optionnel) -->
+    <div class="step" data-step="6">
+      <p class="step-label">06 / 06</p>
+      <h2 class="step-question">Avez-vous une spécialisation ou des atouts spécifiques ?</h2>
+      <p class="step-hint">Optionnel — mais plus vous êtes précis, plus le résultat sera personnalisé.</p>
+      <div class="text-input-wrap">
+        <textarea class="step-input" id="specialisation" rows="3" placeholder="Ex : Expert React / Next.js pour SaaS B2B, certifié AWS, ex-Google, spécialiste e-commerce Shopify, +40% conversion sur dernier projet…"></textarea>
+      </div>
+      <div id="error-msg"></div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(6)">← Retour</button>
+        <button class="btn-next" id="next-6" onclick="submitForm()">Calculer mon taux →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMAIL GATE -->
+  <section id="email-gate">
+    <div class="email-gate-inner">
+      <div class="gate-icon">📊</div>
+      <h2 class="gate-title">Votre analyse est prête</h2>
+      <p class="gate-sub">Entrez votre email pour recevoir votre rapport personnalisé — taux recommandés, positionnement marché, et conseils pour augmenter vos prix.</p>
+      <div class="gate-form">
+        <input type="email" class="gate-input" id="gate-email" placeholder="votre@email.com" />
+        <button class="btn-reveal" onclick="revealResults()">Voir mon taux →</button>
+        <button class="gate-skip" onclick="skipGate()">Passer cette étape</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADING -->
+  <section id="loading">
+    <span class="loading-icon">⚙</span>
+    <p class="loading-text">Analyse en cours…</p>
+    <p class="loading-sub">Comparaison avec les données marché FR 2025</p>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results">
+    <div class="results-header">
+      <p class="results-eyebrow">Analyse personnalisée</p>
+      <h2 class="results-title" id="r-title">Votre taux recommandé</h2>
+      <p class="results-position" id="r-position">—</p>
+    </div>
+
+    <!-- Rate cards -->
+    <div class="rate-grid">
+      <div class="rate-card">
+        <p class="rate-type">Taux compétitif</p>
+        <p class="rate-value" id="r-bas-h">—</p>
+        <p class="rate-unit">€ / heure</p>
+        <div class="rate-tjm">TJM <strong id="r-bas-tjm">—</strong> €/j</div>
+        <p class="rate-context" id="r-quand-bas">—</p>
+      </div>
+      <div class="rate-card featured">
+        <p class="rate-type">Taux cible</p>
+        <p class="rate-value" id="r-cible-h">—</p>
+        <p class="rate-unit">€ / heure</p>
+        <div class="rate-tjm">TJM <strong id="r-cible-tjm">—</strong> €/j</div>
+        <p class="rate-context" id="r-justif">—</p>
+      </div>
+      <div class="rate-card">
+        <p class="rate-type">Taux premium</p>
+        <p class="rate-value" id="r-premium-h">—</p>
+        <p class="rate-unit">€ / heure</p>
+        <div class="rate-tjm">TJM <strong id="r-premium-tjm">—</strong> €/j</div>
+        <p class="rate-context" id="r-quand-premium">—</p>
+      </div>
+    </div>
+
+    <!-- Projection -->
+    <div class="projection">
+      <span class="projection-icon">📅</span>
+      <div>
+        <p class="projection-label">Projection mensuelle · 15 jours facturés</p>
+        <p class="projection-text" id="r-projection">—</p>
+      </div>
+    </div>
+
+    <!-- Analyse -->
+    <div class="analysis-block">
+      <p class="block-label">Analyse de votre positionnement</p>
+      <p class="block-text" id="r-resume">—</p>
+    </div>
+
+    <!-- Alertes + Conseils -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="analysis-block">
+        <p class="block-label">Points d'attention</p>
+        <div class="list-items" id="r-alertes"></div>
+      </div>
+      <div class="analysis-block">
+        <p class="block-label">Pour monter en gamme</p>
+        <div class="list-items" id="r-conseils"></div>
+      </div>
+    </div>
+
+    <!-- Négociation -->
+    <div class="nego-section">
+      <div class="nego-header">
+        <div>
+          <p class="nego-title">Scripts de négociation</p>
+          <p class="nego-sub">Email · Appel · Réponses aux objections — prêts à l'emploi</p>
+        </div>
+        <div id="nego-gate">
+          <button class="btn-unlock" onclick="unlockNego()">Débloquer — gratuit</button>
+        </div>
+        <div id="nego-unlocked" style="display:none">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);letter-spacing:0.05em;">✓ DÉBLOQUÉ</span>
+        </div>
+      </div>
+      <div class="nego-body" id="nego-body">
+        <div class="nego-block">
+          <p class="nego-block-label">📧 Email de proposition tarifaire</p>
+          <div class="nego-text" id="n-email">—</div>
+          <button class="btn-copy" onclick="copyText('n-email')">[ copier ]</button>
+        </div>
+        <div class="nego-block">
+          <p class="nego-block-label">📞 Pitch pour appel</p>
+          <div class="nego-text" id="n-call">—</div>
+          <button class="btn-copy" onclick="copyText('n-call')">[ copier ]</button>
+        </div>
+        <div class="nego-grid">
+          <div>
+            <p class="nego-block-label">💬 "C'est trop cher"</p>
+            <div class="nego-text" id="n-tropcher">—</div>
+          </div>
+          <div>
+            <p class="nego-block-label">💬 "Vous faites une remise ?"</p>
+            <div class="nego-text" id="n-remise">—</div>
+          </div>
+        </div>
+        <div class="nego-grid">
+          <div>
+            <p class="nego-block-label">✓ Arguments à mettre en avant</p>
+            <div class="nego-list" id="n-points"></div>
+          </div>
+          <div>
+            <p class="nego-block-label">✕ Erreurs à éviter</p>
+            <div class="nego-list" id="n-erreurs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-footer">
+      <button class="btn-reset" onclick="resetAll()">← Recalculer avec un autre profil</button>
+    </div>
+  </section>
+
+  <footer>
+    <p class="footer-text">TauxJuste · Données marché France 2025 · Calcul personnalisé</p>
   </footer>
 
-  <script>
-    let calculationData = null;
-    let negotiationUnlocked = false;
+</div>
 
-    // Lock negotiate content on load
-    document.getElementById('negotiate-content').classList.add('locked');
+<script>
+  // ── STATE ──
+  const answers = {};
+  let currentStep = 1;
+  const TOTAL_STEPS = 6;
+  let calcData = null;
+  let negoUnlocked = false;
+  let emailCollected = false;
 
-    async function calculateRate() {
-      const competence = document.getElementById('competence').value;
-      const experience = document.getElementById('experience').value;
+  // ── PROGRESS ──
+  function renderProgress() {
+    const bar = document.getElementById('progress-bar');
+    bar.innerHTML = '';
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const el = document.createElement('div');
+      el.className = 'progress-step' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+      bar.appendChild(el);
+    }
+  }
 
-      if (!competence || !experience) {
-        showError('Veuillez renseigner votre compétence principale et votre expérience.');
-        return;
-      }
+  renderProgress();
 
-      setLoading(true);
+  // ── OPTION SELECTION ──
+  document.querySelectorAll('.options').forEach(group => {
+    group.querySelectorAll('.option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const stepEl = btn.closest('.step');
+        const stepNum = +stepEl.dataset.step;
+        const nextBtn = document.getElementById('next-' + stepNum);
+        if (nextBtn) nextBtn.disabled = false;
+      });
+    });
+  });
 
+  // ── NAVIGATION ──
+  function nextStep(from) {
+    // Collect answer
+    const group = document.getElementById('opts-' + getFieldName(from));
+    if (group) {
+      const sel = group.querySelector('.option.selected');
+      if (sel) answers[getFieldName(from)] = sel.dataset.value;
+    }
+
+    if (from < TOTAL_STEPS) {
+      document.querySelector('.step[data-step="' + from + '"]').classList.remove('active');
+      currentStep = from + 1;
+      document.querySelector('.step[data-step="' + currentStep + '"]').classList.add('active');
+      renderProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function prevStep(current) {
+    document.querySelector('.step[data-step="' + current + '"]').classList.remove('active');
+    currentStep = current - 1;
+    document.querySelector('.step[data-step="' + currentStep + '"]').classList.add('active');
+    renderProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function getFieldName(step) {
+    return ['competence','experience','localisation','typeClient','qualitePortfolio'][step-1];
+  }
+
+  // ── SUBMIT ──
+  async function submitForm() {
+    answers.specialisation = document.getElementById('specialisation').value;
+    showSection('email-gate');
+  }
+
+  // ── EMAIL GATE ──
+  function revealResults() {
+    const email = document.getElementById('gate-email').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('gate-email').focus();
+      document.getElementById('gate-email').style.borderColor = 'var(--red)';
+      return;
+    }
+    emailCollected = true;
+    loadResults();
+  }
+
+  function skipGate() {
+    loadResults();
+  }
+
+  async function loadResults() {
+    showSection('loading');
+    try {
       const payload = {
-        competence,
-        experience,
-        localisation: document.getElementById('localisation').value,
-        arrangement: document.getElementById('arrangement').value,
-        specialisation: document.getElementById('specialisation').value,
-        typeProjet: document.getElementById('typeProjet').value,
-        complexite: document.getElementById('complexite').value,
-        typeClient: document.getElementById('typeClient').value,
-        duree: document.getElementById('duree').value,
-        descriptionProjet: document.getElementById('descriptionProjet').value,
-        qualitePortfolio: document.getElementById('qualitePortfolio').value,
-        niveauDemande: document.getElementById('niveauDemande').value,
-        valeurUnique: document.getElementById('valeurUnique').value,
+        competence: answers.competence || '',
+        experience: answers.experience || '',
+        localisation: answers.localisation || 'France',
+        arrangement: 'Non précisé',
+        specialisation: answers.specialisation || '',
+        typeProjet: 'Non précisé',
+        complexite: 'Standard',
+        typeClient: answers.typeClient || 'PME',
+        duree: 'Non précisé',
+        descriptionProjet: '',
+        qualitePortfolio: answers.qualitePortfolio || 'Portfolio solide',
+        niveauDemande: 'Quelques leads en cours',
+        valeurUnique: answers.specialisation || ''
       };
 
-      try {
-        const res = await fetch('/api/calculate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
-
-        calculationData = { ...payload, tauxCible: data.tauxHoraire?.cible };
-        displayResults(data);
-      } catch (err) {
-        showError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function displayResults(data) {
-      // Rates
-      document.getElementById('r-bas-h').textContent = data.tauxHoraire?.bas + '€/h';
-      document.getElementById('r-bas-tjm').textContent = data.tjm?.bas + '€';
-      document.getElementById('r-cible-h').textContent = data.tauxHoraire?.cible + '€/h';
-      document.getElementById('r-cible-tjm').textContent = data.tjm?.cible + '€';
-      document.getElementById('r-premium-h').textContent = data.tauxHoraire?.premium + '€/h';
-      document.getElementById('r-premium-tjm').textContent = data.tjm?.premium + '€';
-
-      document.getElementById('r-justif').textContent = data.justificationCible || '';
-      document.getElementById('r-quand-bas').textContent = data.quandUtiliserBas ? '→ ' + data.quandUtiliserBas : '';
-      document.getElementById('r-quand-premium').textContent = data.quandUtiliserPremium ? '→ ' + data.quandUtiliserPremium : '';
-
-      document.getElementById('r-position').textContent = data.positionMarche || '';
-      document.getElementById('r-resume').textContent = data.resumePositionnement || '';
-      document.getElementById('r-projection').textContent = data.projectionMensuelle || '';
-
-      // Alertes
-      const alertes = data.alertes || [];
-      document.getElementById('r-alertes').innerHTML = alertes.length
-        ? alertes.map(a => `<li class="flex gap-2"><span class="text-amber-500 mt-0.5">⚠</span><span>${a}</span></li>`).join('')
-        : '<li class="text-gray-400">Aucune alerte particulière.</li>';
-
-      // Conseils
-      const conseils = data.conseils || [];
-      document.getElementById('r-conseils').innerHTML = conseils.length
-        ? conseils.map(c => `<li class="flex gap-2"><span class="text-green-500 mt-0.5">→</span><span>${c}</span></li>`).join('')
-        : '<li class="text-gray-400">Continuez comme ça !</li>';
-
-      // Show results
-      document.getElementById('form-section').classList.add('hidden');
-      document.getElementById('results-section').classList.remove('hidden');
-    }
-
-    async function unlockNegotiation() {
-      if (negotiationUnlocked) return;
-      if (!calculationData) return;
-
-      document.getElementById('premium-gate').innerHTML = '<span class="text-sm text-gray-400 pulse">Génération en cours...</span>';
-
-      try {
-        const res = await fetch('/api/negotiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(calculationData)
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-
-        document.getElementById('n-email').textContent = data.scriptEmail || '—';
-        document.getElementById('n-call').textContent = data.scriptCall || '—';
-        document.getElementById('n-tropcher').textContent = data.reponseTropCher || '—';
-        document.getElementById('n-remise').textContent = data.reponseRemise || '—';
-
-        const points = data.pointsForts || [];
-        document.getElementById('n-points').innerHTML = points
-          .map(p => `<li class="flex gap-2 text-sm"><span class="text-green-500">✓</span><span>${p}</span></li>`)
-          .join('');
-
-        const erreurs = data.erreursCourantes || [];
-        document.getElementById('n-erreurs').innerHTML = erreurs
-          .map(e => `<li class="flex gap-2 text-sm"><span class="text-red-400">✕</span><span>${e}</span></li>`)
-          .join('');
-
-        document.getElementById('negotiate-content').classList.remove('locked');
-        document.getElementById('premium-gate').classList.add('hidden');
-        document.getElementById('premium-unlocked').classList.remove('hidden');
-        negotiationUnlocked = true;
-
-      } catch (err) {
-        document.getElementById('premium-gate').innerHTML = `
-          <span class="text-red-500 text-sm">${err.message}</span>
-          <button onclick="unlockNegotiation()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-5 rounded-xl text-sm transition-colors ml-2">Réessayer</button>
-        `;
-      }
-    }
-
-    function copyText(id) {
-      const text = document.getElementById(id).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target;
-        btn.textContent = '✓ Copié !';
-        setTimeout(() => btn.textContent = 'Copier', 2000);
+      const res = await fetch('/api/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+      calcData = { ...payload, tauxCible: data.tauxHoraire?.cible };
+      displayResults(data);
+    } catch(err) {
+      showSection('wizard');
+      currentStep = 6;
+      document.querySelector('.step[data-step="6"]').classList.add('active');
+      document.getElementById('error-msg').textContent = '❌ ' + err.message;
+      document.getElementById('error-msg').style.display = 'block';
     }
+  }
 
-    function resetForm() {
-      document.getElementById('results-section').classList.add('hidden');
-      document.getElementById('form-section').classList.remove('hidden');
-      negotiationUnlocked = false;
-      document.getElementById('negotiate-content').classList.add('locked');
-      document.getElementById('premium-gate').classList.remove('hidden');
-      document.getElementById('premium-gate').innerHTML = `
-        <span class="badge bg-amber-100 text-amber-700">🔒 Premium</span>
-        <button onclick="unlockNegotiation()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-5 rounded-xl text-sm transition-colors">
-          Débloquer — 3€
-        </button>
+  function displayResults(data) {
+    // Rates
+    document.getElementById('r-bas-h').textContent = data.tauxHoraire?.bas + '€';
+    document.getElementById('r-bas-tjm').textContent = data.tjm?.bas;
+    document.getElementById('r-cible-h').textContent = data.tauxHoraire?.cible + '€';
+    document.getElementById('r-cible-tjm').textContent = data.tjm?.cible;
+    document.getElementById('r-premium-h').textContent = data.tauxHoraire?.premium + '€';
+    document.getElementById('r-premium-tjm').textContent = data.tjm?.premium;
+
+    document.getElementById('r-justif').textContent = data.justificationCible || '';
+    document.getElementById('r-quand-bas').textContent = data.quandUtiliserBas || '';
+    document.getElementById('r-quand-premium').textContent = data.quandUtiliserPremium || '';
+    document.getElementById('r-position').textContent = data.positionMarche || '';
+    document.getElementById('r-resume').textContent = data.resumePositionnement || '';
+    document.getElementById('r-projection').textContent = data.projectionMensuelle || '';
+
+    document.getElementById('r-title').textContent = `${answers.competence || 'Freelance'} · ${answers.experience || ''}`;
+
+    // Alertes
+    const alertes = data.alertes || [];
+    document.getElementById('r-alertes').innerHTML = alertes.length
+      ? alertes.map(a => `<div class="list-item warning"><div class="list-item-dot"></div><span>${a}</span></div>`).join('')
+      : '<p style="font-size:13px;color:var(--text-dim)">Aucune alerte.</p>';
+
+    // Conseils
+    const conseils = data.conseils || [];
+    document.getElementById('r-conseils').innerHTML = conseils.length
+      ? conseils.map(c => `<div class="list-item"><div class="list-item-dot"></div><span>${c}</span></div>`).join('')
+      : '<p style="font-size:13px;color:var(--text-dim)">Continuez comme ça.</p>';
+
+    showSection('results');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── NÉGOCIATION ──
+  async function unlockNego() {
+    if (negoUnlocked || !calcData) return;
+    document.getElementById('nego-gate').innerHTML = '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-dim);letter-spacing:0.05em;">GÉNÉRATION…</span>';
+
+    try {
+      const res = await fetch('/api/negotiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(calcData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      document.getElementById('n-email').textContent = data.scriptEmail || '—';
+      document.getElementById('n-call').textContent = data.scriptCall || '—';
+      document.getElementById('n-tropcher').textContent = data.reponseTropCher || '—';
+      document.getElementById('n-remise').textContent = data.reponseRemise || '—';
+
+      document.getElementById('n-points').innerHTML = (data.pointsForts || [])
+        .map(p => `<div class="nego-list-item"><span class="dot-ok">✓</span><span>${p}</span></div>`).join('');
+      document.getElementById('n-erreurs').innerHTML = (data.erreursCourantes || [])
+        .map(e => `<div class="nego-list-item"><span class="dot-no">✕</span><span>${e}</span></div>`).join('');
+
+      document.getElementById('nego-body').classList.add('unlocked');
+      document.getElementById('nego-gate').style.display = 'none';
+      document.getElementById('nego-unlocked').style.display = 'block';
+      negoUnlocked = true;
+
+    } catch(err) {
+      document.getElementById('nego-gate').innerHTML = `
+        <span style="color:var(--red);font-size:12px;">${err.message}</span>
+        <button class="btn-unlock" onclick="unlockNego()" style="margin-left:12px;">Réessayer</button>
       `;
-      document.getElementById('premium-unlocked').classList.add('hidden');
     }
+  }
 
-    function setLoading(state) {
-      document.getElementById('loading-section').classList.toggle('hidden', !state);
-      document.getElementById('form-section').classList.toggle('hidden', state);
-      document.getElementById('error-msg').classList.add('hidden');
-    }
+  // ── UTILS ──
+  function showSection(id) {
+    ['hero','wizard','email-gate','loading','results'].forEach(s => {
+      document.getElementById(s).style.display = 'none';
+    });
+    document.getElementById('progress-bar').style.display = id === 'wizard' ? 'flex' : 'none';
+    document.getElementById(id).style.display = 'block';
+    if (id === 'wizard') document.getElementById('progress-bar').style.display = 'flex';
+  }
 
-    function showError(msg) {
-      const el = document.getElementById('error-msg');
-      el.textContent = '❌ ' + msg;
-      el.classList.remove('hidden');
-    }
-  </script>
+  // Show hero + wizard initially
+  document.getElementById('hero').style.display = 'block';
+  document.getElementById('wizard').style.display = 'block';
+  document.getElementById('progress-bar').style.display = 'flex';
+  document.getElementById('email-gate').style.display = 'none';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+
+  function resetAll() {
+    Object.keys(answers).forEach(k => delete answers[k]);
+    currentStep = 1;
+    negoUnlocked = false;
+    emailCollected = false;
+
+    document.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.btn-next').forEach(b => { if (b.id !== 'next-6') b.disabled = true; });
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.querySelector('.step[data-step="1"]').classList.add('active');
+    document.getElementById('specialisation').value = '';
+    document.getElementById('error-msg').style.display = 'none';
+    document.getElementById('nego-body').classList.remove('unlocked');
+    document.getElementById('nego-gate').style.display = 'block';
+    document.getElementById('nego-gate').innerHTML = '<button class="btn-unlock" onclick="unlockNego()">Débloquer — gratuit</button>';
+    document.getElementById('nego-unlocked').style.display = 'none';
+
+    document.getElementById('hero').style.display = 'block';
+    document.getElementById('wizard').style.display = 'block';
+    document.getElementById('progress-bar').style.display = 'flex';
+    document.getElementById('email-gate').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+
+    renderProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyText(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btns = document.querySelectorAll('.btn-copy');
+      btns.forEach(b => {
+        if (b.getAttribute('onclick') === `copyText('${id}')`) {
+          b.textContent = '[ copié ✓ ]';
+          setTimeout(() => b.textContent = '[ copier ]', 2000);
+        }
+      });
+    });
+  }
+</script>
 </body>
 </html>
